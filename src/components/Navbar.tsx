@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Compass,
   GraduationCap,
+  Layers,
   LayoutDashboard,
   Map,
   Menu,
@@ -32,6 +33,7 @@ const links = [
   { href: "/catalog", key: "nav.catalog", icon: Compass },
   { href: "/courses", key: "nav.courses", icon: GraduationCap },
   { href: "/dashboard", key: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/applications", key: "nav.applications", icon: Layers },
   { href: "/calendar", key: "nav.calendar", icon: CalendarDays },
   { href: "/roadmap", key: "nav.roadmap", icon: Map },
   { href: "/leaderboard", key: "nav.leaderboard", icon: Trophy },
@@ -83,7 +85,7 @@ export function Navbar() {
 
           <div className="flex items-center gap-2">
             {hydrated && profile && (
-              <div className="hidden items-center gap-2 sm:flex">
+              <div className="hidden items-center gap-2 2xl:flex">
                 <Badge tone="amber" className="font-semibold">
                   <Sparkles className="h-3.5 w-3.5" /> {xp} XP
                 </Badge>

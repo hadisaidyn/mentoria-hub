@@ -53,6 +53,11 @@ export function Footer() {
               </Link>
             </li>
             <li>
+              <Link href="/applications" className="hover:text-brand-600">
+                {t("nav.applications")}
+              </Link>
+            </li>
+            <li>
               <Link href="/leaderboard" className="hover:text-brand-600">
                 {t("nav.leaderboard")}
               </Link>

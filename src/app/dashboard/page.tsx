@@ -18,6 +18,7 @@ import { useT } from "@/lib/i18n";
 import { openOnboarding } from "@/components/Navbar";
 import { Badge, ProgressBar, Stat, cn, useCourseProgress } from "@/components/ui";
 import { Achievements } from "@/components/Achievements";
+import { SkillsRadar } from "@/components/SkillsRadar";
 import { daysUntil, formatDeadline, recommendedOpportunities } from "@/lib/recommend";
 import type { Course } from "@/lib/types";
 
@@ -201,6 +202,7 @@ export default function Dashboard() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          <SkillsRadar />
           <Achievements />
           {/* Urgent deadlines */}
           <section className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">

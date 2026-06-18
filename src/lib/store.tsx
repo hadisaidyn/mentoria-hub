@@ -52,9 +52,13 @@ interface Persisted {
   theme: Theme;
   telegram: boolean;
   achievements: string[];
+  stages: Record<string, string>; // opportunityId -> pipeline stage
   opportunities: Opportunity[];
   courses: Course[];
 }
+
+export type Stage = "interested" | "applying" | "submitted" | "accepted";
+export const STAGES: Stage[] = ["interested", "applying", "submitted", "accepted"];
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
@@ -72,6 +76,7 @@ const initial: Persisted = {
   theme: "light",
   telegram: false,
   achievements: [],
+  stages: {},
   opportunities: OPPORTUNITIES,
   courses: COURSES,
 };
@@ -86,6 +91,7 @@ interface Store extends Persisted {
   // opportunities
   toggleSave: (id: string) => void;
   toggleApplied: (id: string) => void;
+  setStage: (id: string, stage: string | null) => void;
   // learning
   completeLesson: (courseId: string, lessonId: string) => void;
   recordQuiz: (lessonId: string, scorePct: number) => void;
@@ -218,6 +224,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
           if (has) return { ...p, applied: p.applied.filter((x) => x !== id) };
           toast(`+${XP.apply} XP · Marked as applied 🎯`);
           return bumpStreak(addXp({ ...p, applied: [...p.applied, id] }, XP.apply));
+        }),
+      setStage: (id, stage) =>
+        setS((p) => {
+          const stages = { ...p.stages };
+          if (stage === null) delete stages[id];
+          else stages[id] = stage;
+          if (stage === "accepted" && p.stages[id] !== "accepted") celebrate();
+          // Reaching "submitted" or beyond counts as applied (keeps XP/achievements in sync).
+          const applied =
+            (stage === "submitted" || stage === "accepted") && !p.applied.includes(id)
+              ? [...p.applied, id]
+              : p.applied;
+          return { ...p, stages, applied };
         }),
       completeLesson: (courseId, lessonId) =>
         setS((p) => {

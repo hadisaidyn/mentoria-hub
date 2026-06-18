@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, CalendarDays, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, CalendarPlus, ExternalLink } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { Badge, cn } from "@/components/ui";
 import { daysUntil } from "@/lib/recommend";
+import { downloadIcs } from "@/lib/ics";
 import type { Opportunity } from "@/lib/types";
 
 const LOCALES: Record<string, string> = { en: "en-GB", ru: "ru-RU", kk: "kk-KZ" };
@@ -161,14 +162,22 @@ export default function CalendarPage() {
                   <Badge>{t(`dir.${o.direction}`)}</Badge>
                   <p className="mt-1.5 font-semibold text-slate-900 dark:text-white">{o.title}</p>
                   <p className="text-xs text-slate-500">{o.organizer}</p>
-                  <a
-                    href={o.applyUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-600 dark:text-brand-400"
-                  >
-                    {t("common.apply")} <ExternalLink className="h-3 w-3" />
-                  </a>
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <a
+                      href={o.applyUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 dark:text-brand-400"
+                    >
+                      {t("common.apply")} <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <button
+                      onClick={() => downloadIcs(o)}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-brand-600 dark:text-slate-400"
+                    >
+                      <CalendarPlus className="h-3.5 w-3.5" /> {t("common.addToCalendar")}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
