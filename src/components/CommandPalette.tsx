@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Compass,
   CornerDownLeft,
+  FileText,
   GraduationCap,
   Layers,
   LayoutDashboard,
@@ -32,6 +33,7 @@ const PAGES: Item[] = [
   { id: "p-dash", label: "Dashboard", hint: "Your cabinet", href: "/dashboard", icon: LayoutDashboard, group: "Pages" },
   { id: "p-apps", label: "Applications", hint: "Track your pipeline", href: "/applications", icon: Layers, group: "Pages" },
   { id: "p-cal", label: "Calendar", hint: "Deadlines", href: "/calendar", icon: CalendarDays, group: "Pages" },
+  { id: "p-essay", label: "Essay Reviewer", hint: "AI feedback on your essay", href: "/essay-review", icon: FileText, group: "Pages" },
   { id: "p-road", label: "Roadmap", hint: "Grade 9–12 plan", href: "/roadmap", icon: Map, group: "Pages" },
   { id: "p-lead", label: "Leaderboard", hint: "Rankings", href: "/leaderboard", icon: Trophy, group: "Pages" },
   { id: "p-admin", label: "Admin", hint: "Manage content", href: "/admin", icon: Settings, group: "Pages" },

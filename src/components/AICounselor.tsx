@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, Send, Sparkles, X } from "lucide-react";
+import { Bot, Mic, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
@@ -38,6 +38,34 @@ export function AICounselor() {
   const [thinking, setThinking] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([{ role: "ai", text: t("ai.greeting") }]);
   const endRef = useRef<HTMLDivElement>(null);
+
+  // ---- Voice (Web Speech API) ----
+  const speechLang = lang === "ru" ? "ru-RU" : lang === "kk" ? "kk-KZ" : "en-US";
+  const [listening, setListening] = useState(false);
+  const [speak, setSpeak] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recRef = useRef<any>(null);
+  const spokenRef = useRef(0);
+
+  useEffect(() => {
+    const w = window as unknown as { webkitSpeechRecognition?: unknown; SpeechRecognition?: unknown };
+    if (w.webkitSpeechRecognition || w.SpeechRecognition) setVoiceSupported(true);
+  }, []);
+
+  // Read AI replies aloud when the speaker is on.
+  useEffect(() => {
+    if (!speak || typeof window === "undefined" || !window.speechSynthesis) return;
+    const last = msgs[msgs.length - 1];
+    if (last && last.role === "ai" && msgs.length > spokenRef.current) {
+      spokenRef.current = msgs.length;
+      const clean = last.text.replace(/\*\*/g, "").replace(/[#>`]/g, "").replace(/^- /gm, "");
+      const u = new SpeechSynthesisUtterance(clean);
+      u.lang = speechLang;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }
+  }, [msgs, speak, speechLang]);
 
   // keep the opening message in sync with the selected language (only if untouched)
   useEffect(() => {
@@ -91,6 +119,51 @@ export function AICounselor() {
     }
   };
 
+  const toggleMic = () => {
+    if (!voiceSupported) return;
+    if (listening) {
+      recRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    const w = window as unknown as { webkitSpeechRecognition?: new () => unknown; SpeechRecognition?: new () => unknown };
+    const SR = (w.webkitSpeechRecognition || w.SpeechRecognition) as new () => {
+      lang: string;
+      interimResults: boolean;
+      continuous: boolean;
+      start: () => void;
+      stop: () => void;
+      onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
+      onend: (() => void) | null;
+      onerror: (() => void) | null;
+    };
+    const rec = new SR();
+    rec.lang = speechLang;
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onresult = (e) => {
+      const results = Array.from(e.results);
+      const transcript = results.map((r) => r[0].transcript).join("");
+      setInput(transcript);
+      if (results[results.length - 1].isFinal) {
+        setListening(false);
+        ask(transcript);
+      }
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    recRef.current = rec;
+    setListening(true);
+    rec.start();
+  };
+
+  const toggleSpeak = () => {
+    setSpeak((v) => {
+      if (v && typeof window !== "undefined") window.speechSynthesis?.cancel();
+      return !v;
+    });
+  };
+
   return (
     <>
       <button
@@ -131,12 +204,25 @@ export function AICounselor() {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-white/60 dark:hover:bg-slate-800"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={toggleSpeak}
+                    title={t("ai.speak")}
+                    className={`grid h-8 w-8 place-items-center rounded-lg ${
+                      speak
+                        ? "bg-brand-600 text-white"
+                        : "text-slate-500 hover:bg-white/60 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    {speak ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                  </button>
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-white/60 dark:hover:bg-slate-800"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </header>
 
               <div className="flex-1 space-y-3 overflow-y-auto p-5">
@@ -200,6 +286,20 @@ export function AICounselor() {
                   }}
                   className="flex items-center gap-2"
                 >
+                  {voiceSupported && (
+                    <button
+                      type="button"
+                      onClick={toggleMic}
+                      title={t("ai.listen")}
+                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition ${
+                        listening
+                          ? "animate-pulse border-rose-500 bg-rose-500 text-white"
+                          : "border-slate-300 text-slate-500 hover:border-brand-400 hover:text-brand-600 dark:border-slate-700"
+                      }`}
+                    >
+                      <Mic className="h-4 w-4" />
+                    </button>
+                  )}
                   <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}

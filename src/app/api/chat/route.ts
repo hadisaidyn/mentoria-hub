@@ -72,13 +72,32 @@ Guidelines:
 - Never ask for or reveal personal data beyond what's in the profile. Stay on topic (education, opportunities, study planning).`;
 }
 
+function essaySystem(lang: string): string {
+  const language = LANG_NAME[lang] || "English";
+  return `You are an expert university-admissions essay coach for high-school students.
+The user will paste a personal statement or essay. Give warm, specific, actionable feedback in ${language}, formatted in markdown with exactly these sections:
+
+**Overall** — one encouraging sentence on the essay's current state.
+**Strengths** — 2–3 concrete bullets quoting or referencing the actual text.
+**To improve** — 2–3 specific, actionable bullets (not generic advice).
+**Rewritten opening** — one example rewrite of the first sentence that shows, doesn't tell.
+
+Keep the whole response under ~220 words. Be honest but kind. Never invent facts about the student that aren't in the essay.`;
+}
+
 export async function POST(req: Request) {
   if (!process.env.ANTHROPIC_API_KEY) {
     // Signal the client to use its built-in offline fallback.
     return NextResponse.json({ configured: false }, { status: 200 });
   }
 
-  let body: { messages?: ChatMessage[]; profile?: Profile | null; opportunities?: OppLite[]; lang?: string };
+  let body: {
+    messages?: ChatMessage[];
+    profile?: Profile | null;
+    opportunities?: OppLite[];
+    lang?: string;
+    task?: "counselor" | "essay";
+  };
   try {
     body = await req.json();
   } catch {
@@ -93,12 +112,16 @@ export async function POST(req: Request) {
   }
 
   const client = new Anthropic();
+  const system =
+    body.task === "essay"
+      ? essaySystem(body.lang || "en")
+      : buildSystem(body.profile ?? null, body.opportunities ?? [], body.lang || "en");
 
   try {
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: 1024,
-      system: buildSystem(body.profile ?? null, body.opportunities ?? [], body.lang || "en"),
+      system,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     });
 

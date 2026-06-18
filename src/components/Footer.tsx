@@ -40,6 +40,11 @@ export function Footer() {
                 {t("footer.gradeRoadmap")}
               </Link>
             </li>
+            <li>
+              <Link href="/essay-review" className="hover:text-brand-600">
+                {t("essay.title")}
+              </Link>
+            </li>
           </ul>
         </div>
         <div>

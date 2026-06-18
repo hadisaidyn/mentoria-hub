@@ -256,6 +256,19 @@ export default function Dashboard() {
             </button>
           </section>
 
+          <Link
+            href="/essay-review"
+            className="flex items-center gap-3 rounded-3xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-4 transition hover:border-brand-400 dark:border-brand-800 dark:from-brand-500/10 dark:to-slate-900"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-600 text-white">
+              ✍️
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">{t("essay.title")}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t("essay.subtitle")}</p>
+            </div>
+          </Link>
+
           <button
             onClick={store.resetAll}
             className="w-full rounded-xl border border-slate-200 py-2.5 text-xs font-medium text-slate-400 hover:text-rose-500 dark:border-slate-800"
