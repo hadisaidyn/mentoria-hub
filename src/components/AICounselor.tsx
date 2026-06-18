@@ -49,16 +49,46 @@ export function AICounselor() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs, open, thinking]);
 
-  const ask = (q: string) => {
-    if (!q.trim()) return;
+  const ask = async (q: string) => {
+    if (!q.trim() || thinking) return;
+    const history = msgs.map((m) => ({
+      role: m.role === "ai" ? ("assistant" as const) : ("user" as const),
+      content: m.text,
+    }));
+    const payloadMsgs = [...history, { role: "user" as const, content: q }];
+    while (payloadMsgs.length && payloadMsgs[0].role === "assistant") payloadMsgs.shift();
+
     setMsgs((m) => [...m, { role: "user", text: q }]);
     setInput("");
     setThinking(true);
-    setTimeout(() => {
-      const reply = aiCounselorReply(q, profile, opportunities, lang);
+
+    const fallback = () => aiCounselorReply(q, profile, opportunities, lang);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: payloadMsgs,
+          profile,
+          lang,
+          opportunities: opportunities.map((o) => ({
+            title: o.title,
+            direction: o.direction,
+            type: o.type,
+            deadline: o.deadline,
+            grades: o.grades,
+          })),
+        }),
+      });
+      const data = await res.json();
+      const reply = res.ok && data.configured && data.reply ? data.reply : fallback();
       setMsgs((m) => [...m, { role: "ai", text: reply }]);
+    } catch {
+      setMsgs((m) => [...m, { role: "ai", text: fallback() }]);
+    } finally {
       setThinking(false);
-    }, 650);
+    }
   };
 
   return (
