@@ -4,9 +4,9 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Default to the most capable Claude model; override with ANTHROPIC_MODEL
-// (e.g. "claude-haiku-4-5" for a faster / cheaper counselor).
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
+// Defaults to Claude Haiku 4.5 — the fastest, most cost-effective model.
+// Override with ANTHROPIC_MODEL (e.g. "claude-opus-4-8" for max capability).
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5";
 
 interface ChatMessage {
   role: "user" | "assistant";
